@@ -26,32 +26,31 @@ class GardenerPlantation
         }
     }
 
+    /**
+     * Crée la table customisée
+     */
     public function createTable()
     {
+        // Requête SQL
+        $sql = "
+        CREATE TABLE `gardener_plantationV2` (
+            `id_plantation` bigint(24) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `id_user` bigint(24) unsigned NOT NULL,
+            `id_plante` bigint(24) unsigned NOT NULL,
+            `id_calendar` bigint(24) unsigned NOT NULL,
+
+            `title` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
+            `status` tinyint(24) unsigned NOT NULL,
+            
+            `created_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+            `updated_at` datetime NULL);
+        ";
+        
+        // Importe le fichier 'upgrade' pour utiliser dbDelta
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
-            $sql = "
-            CREATE TABLE `gardener_plantation` (
-                `id_plantation` bigint(24) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `id_user` bigint(24) unsigned NOT NULL,
-                `id_plante` bigint(24) unsigned NOT NULL,
-                `status` tinyint(24) unsigned NOT NULL,
-                `calendarId` tinyint(24) unsigned NOT NULL,
-                `title` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `start` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `end` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `category` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `color` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `bgColor` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `dragBgColor` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-                `borderColor` varchar(30) COLLATE 'utf8mb4_unicode_ci' NOT NULL,
-    
-                `created_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-                `updated_at` datetime NULL);
-        ";
-
-            // STEP WP CUSTOMTABLE execution de la requête de création de la table
-            dbDelta($sql);
+        // Execution de la requête de création de la table
+        dbDelta($sql);
     }
 
     public function dropTable()
@@ -63,32 +62,39 @@ class GardenerPlantation
         $this->database->query($sql);
     }
 
-    public function insert($id_user, $id_plante, $calendarId, $title, $start, $end, $category, $color, $bgColor, $dragBgColor, $borderColor)
-    {   $status = 1;
-        // le tableau data stocke les données à insérer dans la table
-        $data = [
-            'id_user' => $id_user,
-            'id_plante' => $id_plante,
-            'status' => $status,
-            'calendarId' => $calendarId,
-            'title' => $title,
-            'start' => $start,
-            'end' => $end,
-            'category' => $category,
-            'color' => $color,
-            'bgColor' => $bgColor,
-            'dragBgColor' => $dragBgColor,
-            'borderColor' => $borderColor,
 
-            'created_at' => date('Y-m-d H:i:s')
-        ];
+    /**
+     * Exécution de la réquête pour
+     * ajouter une plantation
+     */
+    public function insert($id_user, $id_plante, $title, $id_calendar)
+    {    
+         $preparedStatement = (
+            $this->database->prepare(
+            "
+            INSERT INTO `gardener_plantation` 
+            (`id_user`, `id_plante`, `id_calendar`, `title`, `status`, `created_at`)
+            VALUES (%d, %d, %d, %s, %d, %s);
+            ",
+            array(
+                  $id_user,
+                  $id_plante,
+                  $id_calendar,
+                  $title,
+                  1,
+                  date('Y-m-d H:i:s')
+               )
+            )
+         );
 
-        $this->database->insert(
-            'gardener_plantation',
-            $data
-        );
+         return $this->database->get_results($preparedStatement);
     }
 
+    /**
+     * Récupère les plantations d'un utilisateur
+     *
+     * @param [int] $id_user
+     */
     public function getPlantationsByUserId($id_user)
     {
         $sql = "
@@ -99,20 +105,12 @@ class GardenerPlantation
                 `id_user` = %d
         ";
 
-        $rows = $this->executePreparedStatement(
+        $preparedStatement = $this->database->prepare(
             $sql,
-            [
-                $id_user
-            ]
+            $id_user
         );
 
-        $results = [];
-
-        foreach ($rows as $values) {
-            $results[] =  $values;
-        }
-        //var_dump($results);exit;
-        return $results;
+        return $this->database->get_results($preparedStatement);
     }
 
     public function update($id_user, $id_plante, $id_plantation, $calendarId, $title, $start, $end, $category, $color, $bgColor, $dragBgColor, $borderColor, $status = 1)
@@ -121,6 +119,7 @@ class GardenerPlantation
             'id_plante' => $id_plante,
             'status' => $status,
             'calendarId' => $calendarId,
+
             'title' => $title,
             'start' => $start,
             'end' => $end,

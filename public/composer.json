@@ -23,7 +23,9 @@
         "johnpbloch/wordpress": "^5.6",
         "wpackagist-theme/twentytwentyone": "*",
         "wpackagist-plugin/user-role-editor": "*",
-        "wpackagist-plugin/jwt-authentication-for-wp-rest-api": "^1.2"
+        "wpackagist-plugin/jwt-authentication-for-wp-rest-api": "^1.2",
+        "wpackagist-plugin/classic-editor": "^1.6",
+        "wpackagist-plugin/all-in-one-wp-migration": "^7.51"
     },
 
     "scripts": {

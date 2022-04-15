@@ -10,24 +10,23 @@ class Plugin
      */
     public function __construct()
     {
-        $metaPeriod = new MetaPeriod();
-        $userPlanting = new User_planting;
-        $event = new Event();
-
         add_action('init', [$this, 'createPlanteCPT']);
 
         add_action('init', [$this, 'createPlanteTypeTaxonomy']);
 
         add_action('init', [$this, 'createPlanteRegionsTaxonomy']);
 
+        add_action('rest_api_init', [$this, 'api_meta']);
+
+        $metaPeriod = new MetaPeriod();
         add_action('add_meta_boxes', [$metaPeriod, 'metaboxesloadSemi']);
         add_action('save_post', [$metaPeriod, 'save_metaboxe']);
 
-        add_action('rest_api_init', [$this, 'api_meta']);
-
+        $userPlanting = new User_planting;
         add_action('add_meta_boxes', [$userPlanting, 'user_Metaboxes_Planting']);
         add_action('save_post', [$userPlanting, 'saveUserMetaboxesDaysPlantation']);
 
+        $event = new Event();
         add_action('rest_api_init', [$event, 'initialize']);
     }
     
@@ -74,7 +73,6 @@ class Plugin
 
             'public' => true,
             'menu_icon' => 'dashicons-carrot',
-            add_theme_support('post-thumbnails'),
 
             //  Je veux que mes plantes apparaissent dans l'API fournis par WP
             'show_in_rest' => true,
@@ -136,7 +134,6 @@ class Plugin
     public function get_post_meta_for_api($object)
     {
         $post_id = $object['id'];
-        
         
         return get_post_meta($post_id);
     }   

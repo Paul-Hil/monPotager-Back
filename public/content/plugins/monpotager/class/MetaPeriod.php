@@ -6,24 +6,18 @@ class MetaPeriod
 {
     const calendrier = [
         'none'      => '',
-        'Janvier'   => '2021-01-01',
-        'Février'   => '2021-02-01',
-        'Mars'      => '2021-03-01',
-        'Avril'     => '2021-04-01',
-        'Mai'       => '2021-05-01',
-        'Juin'      => '2021-06-01',
-        'Juillet'   => '2021-07-01',
-        'Aout'      => '2021-08-01',
-        'Septembre' => '2021-09-01',
-        'Octobre'   => '2021-10-01',
-        'Novembre'  => '2021-11-01',
-        'Décembre'  => '2021-12-01'
-    ];
-
-    const colors = [
-        'Légume'   => '#067106',
-        'Fruit'    => '#0E5671',
-        'Arôme'    => '#719C0F'
+        'Janvier'   => '-01-01',
+        'Février'   => '-02-01',
+        'Mars'      => '-03-01',
+        'Avril'     => '-04-01',
+        'Mai'       => '-05-01',
+        'Juin'      => '-06-01',
+        'Juillet'   => '-07-01',
+        'Aout'      => '-08-01',
+        'Septembre' => '-09-01',
+        'Octobre'   => '-10-01',
+        'Novembre'  => '-11-01',
+        'Décembre'  => '-12-01'
     ];
 
     const regions = [
@@ -48,32 +42,43 @@ class MetaPeriod
     }
 
     public function loadRegions($post)
-    {         
+    {   
+        // Nouveau tableau vide
         $newCalendar = [];
-        foreach(self::calendrier as $month => $value) {
-            $years = date('Y');
-            $newDate = substr_replace($value, $years, 0, 4);
+
+        // Boucle sur le tableau calendrier
+        foreach(self::calendrier as $month => $monthValue) { 
+            
+            //  Formate une date, l'année actuelle
+            $year = date('Y'); 
+
+            // Concaténation de l'année générée et 
+            // de la date provenant du tableau
+            $newDate = $year . $monthValue; 
             if($month === 'none') {
                 $newDate = '';
             }
-            $newCalendar[$month] = $newDate;
+
+            // Remplissage du tableau en gardant la 
+            // stucture que celui précédent
+            $newCalendar[$month] = $newDate; 
         }
+            
+        foreach (self::regions as $region => $value) { // Boucle sur le tableau regions
 
-        //var_dump($newCalendar);exit;
-
-        foreach (self::regions as $region => $value) {
             // *************** START SEMIS ****************** //
-            //*************************************************/
 
-            $valueMonthBeginsSemis = get_post_meta($post->ID, 'debut_semi' . $value, true);
+            // Récupère la valeur de notre champ 
+            $valueMonthBeginsSemis = get_post_meta($post->ID, 'debut_semi' . $value, true); 
 
             echo "<div style='border:solid 2px #c3c4c7; margin-bottom: 1rem;padding:0.5rem;'>";
             echo "<h2>$region :</h2>";
             echo '<label for="dispo_meta">Indiquez la periode de semis - Début : </label>';
-            echo '<select name="start_semi' . $value . '">';
 
-            foreach ($newCalendar as $month => $TabValue) {
-                echo '<option' . selected($TabValue, $valueMonthBeginsSemis) . ' value="' . $TabValue . '" >' . $month . '</option>';
+            echo '<select name="start_semi' . $value . '">'; // Elément <select>
+            foreach ($newCalendar as $month => $TabMonthValue) { // Boucle sur le tableau du calendrier 'dynamique'
+
+                echo '<option' . selected($TabMonthValue, $valueMonthBeginsSemis) . ' value="' . $TabMonthValue . '" >' . $month . '</option>';
             }
             echo '</select>';
 
@@ -83,7 +88,7 @@ class MetaPeriod
             echo '<label for="dispo_meta"> Fin : </label>';
             echo '<select name="end_semi' . $value . '">';
 
-            foreach (self::calendrier as $month => $TabValue) {
+            foreach ($newCalendar as $month => $TabValue) {
                 echo '<option' . selected($TabValue, $valueMonthEndsSemis) . ' value="' . $TabValue . '">' . $month . '</option>';
             }
             echo '</select><br>';
@@ -97,7 +102,7 @@ class MetaPeriod
             echo '<label for="dispo_meta">Indiquez la periode de plantation - Début : </label>';
             echo '<select name="start_plant' . $value . '">';
 
-            foreach (self::calendrier as $month => $TabValue) {
+            foreach ($newCalendar as $month => $TabValue) {
                 echo '<option' . selected($TabValue, $valueMonthBeginsPlants) . ' value="' . $TabValue . '">' . $month . '</option>';
             }
 
@@ -110,7 +115,7 @@ class MetaPeriod
             echo '<label for="dispo_meta"> Fin : </label>';
             echo '<select name="end_plant' . $value . '">';
 
-            foreach (self::calendrier as $month => $TabValue) {
+            foreach ($newCalendar as $month => $TabValue) {
                 echo '<option' . selected($TabValue, $valueMonthEndsPlants) . ' value="' . $TabValue . '">' . $month . '</option>';
             }
             echo '</select><br>';
@@ -125,7 +130,7 @@ class MetaPeriod
             echo '<label for="dispo_meta">Indiquez la periode de récolte - Début : </label>';
             echo '<select name="start_harvest'.$value.'">';
 
-            foreach (self::calendrier as $month => $TabValue) {
+            foreach ($newCalendar as $month => $TabValue) {
                 echo '<option ' . selected($TabValue, $valueMonthBeginsHarvest) . ' value="' . $TabValue . '">' . $month . '</option>';
             }
 
@@ -138,7 +143,7 @@ class MetaPeriod
             echo '<label for="dispo_meta"> Fin : </label>';
             echo '<select name="end_harvest' .$value. '">';
 
-            foreach (self::calendrier as $month => $TabValue) {
+            foreach ($newCalendar as $month => $TabValue) {
                 echo '<option' . selected($TabValue, $valueMonthEndsHarveset) . ' value="' . $TabValue . '" >' . $month . '</option>';
             }
             echo '</select></div>';
@@ -147,83 +152,49 @@ class MetaPeriod
 
     public function save_metaboxe($post_ID)
     {
-        foreach (self::regions as $region => $value) {
+        $newCalendar = [];
 
-            // *************** START SEMIS ****************** //
-            //*************************************************/
-
-            if (isset($_POST['start_semi' . $value])) {
-                update_post_meta($post_ID, 'debut_semi' . $value, esc_html($_POST['start_semi' . $value]));
-                $date = $_POST['start_semi' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'debut_semi-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'debut_semi-month' . $value, esc_html($month));
-                }
+        foreach(self::calendrier as $month => $monthValue) {
+            $year = date('Y');
+            $newDate = $year . $monthValue;
+            if($month === 'none') {
+                $newDate = '';
             }
 
-            if (isset($_POST['end_semi' . $value])) {
-                update_post_meta($post_ID, 'fin_semi' . $value, esc_html($_POST['end_semi' . $value]));
-                $date = $_POST['end_semi' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'fin_semi-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'fin_semi-month' . $value, esc_html($month));
-                }
-            }
-
-
-            // *************** START PLANTATION ************** //
-            //*************************************************/
-            
-            if (isset($_POST['start_plant' . $value])) {
-                update_post_meta($post_ID, 'debut_plant' . $value, esc_html($_POST['start_plant' . $value]));
-                $date = $_POST['start_plant' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'debut_plant-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'debut_plant-month' . $value, esc_html($month));
-                }
-            }
-
-            if (isset($_POST['end_plant' . $value])) {
-                update_post_meta($post_ID, 'fin_plant' . $value, esc_html($_POST['end_plant' . $value]));
-                $date = $_POST['end_plant' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'fin_plant-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'fin_plant-month' . $value, esc_html($month));
-                }
-            }
-
-            // *************** START HARVEST ****************** //
-            //*************************************************/
-
-            if (isset($_POST['start_harvest' .$value])) {
-                update_post_meta($post_ID, 'debut_recolte'.$value, esc_html($_POST['start_harvest' .$value]));
-                $date = $_POST['end_plant' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'debut_recolte-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'debut_recolte-month' . $value, esc_html($month));
-                }
-            }
-
-            if (isset($_POST['end_harvest'.$value])) {
-                update_post_meta($post_ID, 'fin_recolte'.$value, esc_html($_POST['end_harvest' .$value]));
-                $date = $_POST['end_harvest' . $value];
-                $month = array_search($date, self::calendrier);
-                if($month === 'none') {
-                    delete_post_meta($post_ID, 'fin_recolte-month' . $value,);
-                } else {
-                    update_post_meta($post_ID, 'fin_recolte-month' . $value, esc_html($month));
-                }
-            }
+            $newCalendar[$month] = $newDate;
         }
+
+        $cultureList = [
+            'start_semi' => 'debut_semi',
+            'end_semi' => 'fin_semi',
+    
+            'start_plant' => 'debut_plant',
+            'end_plant' => 'fin_plant',
+    
+            'start_harvest' => 'debut_recolte',
+            'end_harvest' => 'fin_recolte'
+        ];
+    
+        // Boucle sur le tableau des régions
+        foreach (self::regions as $region => $value) { 
+            // Boucle sur le tableau des periodes des étapes de cultures
+            foreach($cultureList as $cultureTypePost => $cultureTypeMeta) 
+            {
+                // Vérifie si la variable est bien déclarée
+                if (isset($_POST[$cultureTypePost . $value])) {  
+                
+                    // On récupère la date stocké dans la variable POST de la méthode HTTP
+                    $dataSelected = $_POST[$cultureTypePost . $value]; 
+
+                    // Récupère le mois associé en comparant les valeurs du calendrier et celle récupérée
+                    $month = array_search($dataSelected, $newCalendar);
+
+                    if($month === 'none') {
+                        // Supprime le champ 'meta'
+                        delete_post_meta($post_ID, $cultureTypeMeta . $value,);
+                    } else {
+                        // Créer ou modifier les champs du post enregistrés en tant que 'meta'
+                        update_post_meta($post_ID, $cultureTypeMeta . $value, esc_html($dataSelected)); 
+        }}}}
     }
 }

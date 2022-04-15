@@ -5,6 +5,10 @@
         }
     },
     "config": {
-        "vendor-dir": "vendor-monpotager"
+        "vendor-dir": "vendor"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7 || ^6.5 || ^7.5",
+        "yoast/phpunit-polyfills": "^1.0"
     }
 }
